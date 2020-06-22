@@ -1,0 +1,28 @@
+---
+# ./vars/config_vars.yml
+
+STACK_HOME: /home/stack
+
+
+USER: stack
+DNS1: 8.8.8.9
+DNS2: 8.8.8.8
+host_name: standalone.localdomain
+pub_key: mdkey.pub
+
+#Jenkins Variable
+NODE_IP: 192.168.66.3
+NODE_TYPE: baremetal   #change it to vm if node is virtual machine 
+NETMASK: 22
+GATEWAY: 10.0.1.10
+INTERFACE: eno2
+
+
+repos:
+  - rhel-8-for-x86_64-baseos-eus-rpms
+  - rhel-8-for-x86_64-appstream-rpms
+  - rhel-8-for-x86_64-highavailability-eus-rpms
+  - ansible-2.8-for-rhel-8-x86_64-rpms
+  - openstack-16-for-rhel-8-x86_64-rpms
+  - fast-datapath-for-rhel-8-x86_64-rpms
+

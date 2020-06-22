@@ -1,0 +1,69 @@
+---
+- hosts: all
+  tasks:
+
+  - name: Installed Ansible
+    raw: |
+      subscription-manager register --force --auto-attach --username="{{ rhn_user_name }}" --password="{{ rhn_user_psw }}"
+      dnf install -y @python36
+      ln -s /usr/bin/python3 /usr/bin/python
+
+        hostnamectl set-hostname "{{ host_name }}"
+        hostnamectl set-hostname "{{ host_name }}" --transient
+
+  - name: Set Host name
+    shell:
+      cmd: |
+        hostnamectl set-hostname "{{ host_name }}"
+        hostnamectl set-hostname "{{ host_name }}" --transient
+
+  - name: Create stack user
+    user: name=stack
+    sudo: yes
+
+  - name: Add stack user to the sudoers
+    copy:
+      dest: "/etc/sudoers.d/stack"
+      content: "stack  ALL=(root)  NOPASSWD: ALL"
+      mode: 0440
+
+  - name: Create stack user and set authorized key
+    authorized_key:
+      user: stack
+      state: present
+      key: "{{ lookup('file', 'mdkey.pub') }}"
+
+  - name: Same as above but subscribe to a specific pool by ID.
+    redhat_subscription:
+      force_register: yes
+      state: present
+      username: "{{ rhn_user_name }}"
+      password: "{{ rhn_user_psw }}"
+      pool_ids: "{{ pool_id }}"
+
+  - name: Lock the undercloud to Red Hat Enterprise Linux 8.1
+    shell:
+      cmd: subscription-manager release --set=8.1
+
+  - name: install dnf-utils
+    package:
+      name: dnf-utils
+      state: present
+
+  - name: Disable all RHSM repositories
+    rhsm_repository:
+      name: '*'
+      state: disabled
+
+
+  - name: Enable a RHSM repository
+    rhsm_repository:
+      name: "{{ item }}"
+    with_items: "{{ repos }}"
+
+  - name: install tripleoclient
+    package:
+      name: python3-tripleoclient
+      state: present
+...
+
