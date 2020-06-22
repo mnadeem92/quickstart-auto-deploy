@@ -24,7 +24,7 @@ parameter_defaults:
   # enable to force metadata for public net
   #NeutronEnableForceMetadata: true
   StandaloneEnableRoutedNetworks: false
-  StandaloneHomeDir: {{ HOME }}
+  StandaloneHomeDir: {{ STACK_HOME }}
   InterfaceLocalMtu: 1500
   # Needed if running in a VM, not needed if on baremetal
   #NovaComputeLibvirtType: qemu

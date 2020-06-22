@@ -1,0 +1,12 @@
+#Need to set these variables only if using deploy_osp.sh script
+export VAULT_PSW=        #Ansible vault password which has used to encrypt credentials.yaml and ssh keys(mdkey&mdkey.pub)
+export NODE_IP=          #IP of the target node
+export NODE_PSW=         #Root password of target node
+export NODE_TYPE=        #Set type to target node to 'baremetal'(default) for physical server or 'vm' for virtual machine.
+export HOST_NAME=        # Host name / CNAME of the target node.
+export INTERFACE=        # Interface name associated with NODE_IP.
+export NETMASK=          # Network Mask of NODE_IP
+export GATEWAY=          # Gateway to the target node network.
+export DNS1=             # 1st DNS of the target node network or use goggle DNS 8.8.8.8
+export DNS2=             #2nd DNS of the target node network or use goggle DNS 8.8.8.8
+

@@ -1,21 +1,19 @@
 ---
 - hosts: all
+  remote_user: root
+  gather_facts: no
   tasks:
-
-  - name: Installed Ansible
+  - name: Install Ansible
     raw: |
       subscription-manager register --force --auto-attach --username="{{ rhn_user_name }}" --password="{{ rhn_user_psw }}"
       dnf install -y @python36
-      ln -s /usr/bin/python3 /usr/bin/python
-
-        hostnamectl set-hostname "{{ host_name }}"
-        hostnamectl set-hostname "{{ host_name }}" --transient
+      ln -sf /usr/bin/python3 /usr/bin/python
 
   - name: Set Host name
     shell:
       cmd: |
-        hostnamectl set-hostname "{{ host_name }}"
-        hostnamectl set-hostname "{{ host_name }}" --transient
+        hostnamectl set-hostname "{{ HOST_NAME }}"
+        hostnamectl set-hostname "{{ HOST_NAME }}" --transient
 
   - name: Create stack user
     user: name=stack
@@ -27,13 +25,13 @@
       content: "stack  ALL=(root)  NOPASSWD: ALL"
       mode: 0440
 
-  - name: Create stack user and set authorized key
+  - name: Set authorized key
     authorized_key:
       user: stack
       state: present
-      key: "{{ lookup('file', 'mdkey.pub') }}"
+      key: "{{ lookup('file', 'vars/mdkey.pub') }}"
 
-  - name: Same as above but subscribe to a specific pool by ID.
+  - name: Add RHEL subscriptions and attached pool
     redhat_subscription:
       force_register: yes
       state: present
@@ -41,9 +39,9 @@
       password: "{{ rhn_user_psw }}"
       pool_ids: "{{ pool_id }}"
 
-  - name: Lock the undercloud to Red Hat Enterprise Linux 8.1
+  - name: Lock the undercloud to Red Hat Enterprise Linux 8.2
     shell:
-      cmd: subscription-manager release --set=8.1
+      cmd: subscription-manager release --set=8.2
 
   - name: install dnf-utils
     package:
@@ -55,15 +53,21 @@
       name: '*'
       state: disabled
 
-
   - name: Enable a RHSM repository
     rhsm_repository:
       name: "{{ item }}"
-    with_items: "{{ repos }}"
+    with_items: "{{ REPOS }}"
 
-  - name: install tripleoclient
+  - name: Install Tripleoclient
     package:
       name: python3-tripleoclient
       state: present
+
+  - name: Copy standalone-tripleo.yaml to the target node
+    copy:
+      src: templates/standalone-tripleo.yaml
+      dest: /usr/share/openstack-tripleo-heat-templates/environments/standalone/standalone-tripleo.yaml
+      backup: yes
+      force: yes
 ...
 

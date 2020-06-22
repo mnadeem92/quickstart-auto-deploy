@@ -1,26 +1,40 @@
 ---
 - hosts: all
+  vars:
+    node_type: "{{ NODE_TYPE }}"
   remote_user: stack
   tasks:
-  - name: copy jinja template
+  - name: Configuring standalone_parameters.yaml
     template:
-      src: vars/standalone_parameters.yaml.j2
+      src: templates/standalone_parameters.yaml.j2
       dest: "$HOME/standalone_parameters.yaml"
 
-  - name: update the standalone_parameters
-    shell:
-      cmd: echo "NovaComputeLibvirtType: qemu" >> $HOME/standalone_parameters.yaml
-      when: $NODE_TYPE == "vm"
+  - name: Configuring containers-prepare-parameters.yaml
+    template:
+      src: templates/containers-prepare-parameters.yaml.j2
+      dest: "$HOME/containers-prepare-parameters.yaml"
+
+  - name: Update the standalone_parameters.yaml for Virtual Machine
+    shell: sed -i 's/#NovaComputeLibvirtType/NovaComputeLibvirtType/g' $HOME/standalone_parameters.yaml
+    when: node_type == "vm"
 
   - name: Deploy the OSP environment
     shell: >
       sudo openstack tripleo deploy
       --templates
-      --local-ip=$NODE_IP/$NETMASK
+      --local-ip="{{ NODE_IP }}"/"{{ NETMASK }}"
       -e /usr/share/openstack-tripleo-heat-templates/environments/standalone/standalone-tripleo.yaml
       -r /usr/share/openstack-tripleo-heat-templates/roles/Standalone.yaml
       -e $HOME/containers-prepare-parameters.yaml
       -e $HOME/standalone_parameters.yaml
       --output-dir $HOME
       --standalone
+    register: output
+  - debug: var=output.stdout_lines
 
+  - name: Get the clouds.yaml
+    shell: cat $HOME/.config/openstack/clouds.yaml
+    register: cat
+
+  - name: Details of the cloud environment
+    debug: var=cat.stdout_lines
